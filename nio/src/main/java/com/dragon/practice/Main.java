@@ -11,33 +11,20 @@ import java.nio.channels.FileChannel;
 @Slf4j
 public class Main {
     public static void main(String[] args) {
-        try {
-            // 获取文件输入流
-            FileInputStream fis = new FileInputStream("nio/src/main/resources/test.txt");
-            // 获取channel
-            FileChannel channel = fis.getChannel();
-            // 分配缓冲区
-            ByteBuffer buffer = ByteBuffer.allocate(1024);
-
-            do {
-                // 从channel中读取数据到缓冲区
-                int bytesRead = channel.read(buffer);
-                if (bytesRead == -1) {break;}
-                // 切换缓冲区为读取模式
-                buffer.flip();
-                // 从缓冲区中读取数据
-                while (buffer.hasRemaining()) {
-                    byte b = buffer.get();
-                    log.info("{}", (char) b);
-                }
-                // 清空缓冲区
-                buffer.clear();
-            } while (true);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-
-        }
+        ByteBuffer buffer = ByteBuffer.allocate(10);
+        buffer.put((byte) 0x61);
+        buffer.put((byte) 0x62);
+        // 在不flip的情况下读数据：
+//        log.info("在不flip的情况下读数据：{}", (char) buffer.get());
+        // 反转后读数据
+        buffer.flip();
+        log.info("反转后读数据：{}", (char) buffer.get());
+        // 压缩后
+        buffer.compact();
+        // 此时读数据看看是不是读到了没被删除的0x62
+        log.info("查看position：{}", buffer.position());
+        log.info("压缩后读数据：{}", (char) buffer.get());
+        log.info("查看position：{}", buffer.position());
+        log.info("总结：谨慎使用get()方法，应当在调用flip()方法后使用");
     }
 }
