@@ -12,6 +12,7 @@
   <modules>
     <module>discard-server</module>
       <module>time-server</module>
+      <module>nio</module>
   </modules>
 
   <properties>
