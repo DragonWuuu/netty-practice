@@ -25,6 +25,8 @@ public class Main {
         log.info("查看position：{}", buffer.position());
         log.info("压缩后读数据：{}", (char) buffer.get());
         log.info("查看position：{}", buffer.position());
-        log.info("总结：谨慎使用get()方法，应当在调用flip()方法后使用");
+        log.info("使用get(1)方法读取数据：{}", (char) buffer.get(1));
+        log.info("查看position：{}", buffer.position());
+        log.info("总结：谨慎使用get()方法，应当在调用flip()方法后使用，但使用get(1)方法不会移动指针");
     }
 }
