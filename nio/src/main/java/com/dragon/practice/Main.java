@@ -27,25 +27,32 @@ public class Main {
             // 使用NIO创建服务器
             ServerSocketChannel  serverSocketChannel = ServerSocketChannel.open();
             log.info("opening serverSocketChannel");
+            // 配置非阻塞
+            serverSocketChannel.configureBlocking(false);
             // 绑定监听端口
             serverSocketChannel.bind(new InetSocketAddress(8080));
             log.info("bing port 8080");
             // 建立多客户端的连接
             List<SocketChannel> channels = new ArrayList<>();
             do {
-                // accept默认是阻塞的
                 SocketChannel channel = serverSocketChannel.accept();
-                log.info("accept client: {}", channel);
-                channels.add(channel);
+                if (channel != null) {
+                    channels.add(channel);
+                    log.info("accept client: {}", channel);
+                    // 配置非阻塞
+                    channel.configureBlocking(false);
+                }
                 // 读数据
                 for (SocketChannel socketChannel : channels) {
-                    // read 也是阻塞的
-                    socketChannel.read(buffer);
-                    buffer.flip();
-                    while (buffer.hasRemaining()) {
-                        log.info("{}", (char) buffer.get());
+                    // 非阻塞模式，没有数据可读，会返回0
+                    int read = socketChannel.read(buffer);
+                    if (read > 0) {
+                        buffer.flip();
+                        while (buffer.hasRemaining()) {
+                            log.info("{}", (char) buffer.get());
+                        }
+                        buffer.clear();
                     }
-                    buffer.clear();
                 }
             } while (true);
 

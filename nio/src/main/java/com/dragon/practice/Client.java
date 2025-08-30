@@ -13,7 +13,7 @@ public class Client {
         SocketChannel socketChannel = SocketChannel.open();
         socketChannel.connect(new InetSocketAddress("localhost", 8080));
         log.info("Connected to server {}", socketChannel.getRemoteAddress());
-        socketChannel.write(ByteBuffer.wrap("Hello".getBytes()));
+        socketChannel.write(ByteBuffer.wrap("Hello2".getBytes()));
         socketChannel.close();
 
     }
