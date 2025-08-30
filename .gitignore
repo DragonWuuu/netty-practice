@@ -18,3 +18,5 @@ buildNumber.properties
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+/nio/src/main/resources/3g.txt
+/nio/src/main/resources/3m.txt
