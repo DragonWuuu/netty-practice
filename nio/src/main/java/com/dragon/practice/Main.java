@@ -62,6 +62,8 @@ public class Main {
                 Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
                 while (iterator.hasNext()) {
                     SelectionKey key = iterator.next();
+                    // 准备处理事件了，从SelectorKeys中删除处理了的key
+                    iterator.remove();
                     log.info("selected key: {}", key);
                     if (key.isAcceptable()) {
                         SocketChannel socketChannel = ((ServerSocketChannel) key.channel()).accept();
@@ -102,8 +104,6 @@ public class Main {
 
                     // 遇到不想处理的事件可以取消,否则这个事件会一直触发select(),变成了类似非阻塞的状态
 //                    key.cancel();
-                    // 处理完事件了，从SelectorKeys中删除处理了的key
-                    iterator.remove();
                 }
 
             } while (true);
