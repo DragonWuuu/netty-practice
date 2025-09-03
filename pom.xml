@@ -13,6 +13,7 @@
     <module>discard-server</module>
       <module>time-server</module>
       <module>nio</module>
+      <module>hello-netty</module>
   </modules>
 
   <properties>
