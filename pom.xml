@@ -14,6 +14,7 @@
       <module>time-server</module>
       <module>nio</module>
       <module>hello-netty</module>
+      <module>netty-demo</module>
   </modules>
 
   <properties>
