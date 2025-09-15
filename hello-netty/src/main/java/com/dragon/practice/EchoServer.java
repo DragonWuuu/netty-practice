@@ -6,10 +6,9 @@ import io.netty.channel.*;
 import io.netty.channel.local.LocalEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.FixedLengthFrameDecoder;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
-
-import java.net.SocketException;
 
 import static io.netty.buffer.ByteBufUtil.appendPrettyHexDump;
 import static io.netty.util.internal.StringUtil.NEWLINE;
@@ -25,10 +24,32 @@ public class EchoServer {
                 .group(parentGroup,
                         childGroup)
                 .channel(NioServerSocketChannel.class)
+                .option(ChannelOption.SO_BACKLOG, 2)
                 .childHandler(new ChannelInitializer<>() {
                     @Override
                     protected void initChannel(Channel ch) throws Exception {
                         ch.pipeline()
+                                .addLast(new IdleStateHandler(10, 0, 0))
+                                .addLast(new ChannelDuplexHandler() {
+                                    @Override
+                                    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+                                        if (evt instanceof IdleStateEvent) {
+                                            IdleStateEvent event = (IdleStateEvent) evt;
+                                            switch (event.state()) {
+                                                case READER_IDLE:
+                                                    log.info("read idle");
+                                                    break;
+                                                case WRITER_IDLE:
+                                                    log.info("write idle");
+                                                    break;
+                                                case ALL_IDLE:
+                                                    log.info("all idle");
+                                                    break;
+                                            }
+                                        }
+                                        super.userEventTriggered(ctx, evt);
+                                    }
+                                })
                                 .addLast(new LocalEventLoopGroup(1))
                                 .addLast(new ChannelInboundHandlerAdapter() {
                                     @Override
@@ -39,10 +60,15 @@ public class EchoServer {
 
                                     @Override
                                     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-                                            log.error("error remote:{}, {}, message: {}",
-                                                    ctx.channel().remoteAddress(),
-                                                    cause.getClass(),
-                                                    cause.getMessage());
+                                        log.error("error remote:{}, {}, message: {}",
+                                                ctx.channel().remoteAddress(),
+                                                cause.getClass(),
+                                                cause.getMessage());
+                                    }
+
+                                    @Override
+                                    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                                        log.info("channel inactive");
                                     }
                                 })
                                 .addLast(new ChannelOutboundHandlerAdapter() {
@@ -60,15 +86,15 @@ public class EchoServer {
             channel.closeFuture().sync();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
-        }
-        finally {
+        } finally {
             parentGroup.shutdownGracefully();
             childGroup.shutdownGracefully();
         }
     }
+
     public static void printBuffer(ByteBuf byteBuf) {
         int length = byteBuf.readableBytes();
-        int rows = length / 16 + (length % 15 == 0 ? 0 :1) + 4;
+        int rows = length / 16 + (length % 15 == 0 ? 0 : 1) + 4;
         StringBuilder buf = new StringBuilder(rows * 80 * 2);
         buf.append("read index:").append(byteBuf.readerIndex());
         buf.append(" write index:").append(byteBuf.writerIndex());

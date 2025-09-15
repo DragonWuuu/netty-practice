@@ -13,6 +13,9 @@ import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
@@ -27,14 +30,34 @@ public class EchoClient {
         Bootstrap bootstrap = new Bootstrap()
                 .group(group)
                 .channel(NioSocketChannel.class)
+                // 2秒未能成功建立连接抛出异常TestConnectionTimeout
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 2000)
                 .handler(new ChannelInitializer<>() {
                     @Override
                     protected void initChannel(Channel ch) throws Exception {
                         ch.pipeline()
+                                .addLast(new IdleStateHandler(0,10,0))
+                                .addLast(new ChannelDuplexHandler(){
+                                    @Override
+                                    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+                                        if (evt instanceof IdleStateEvent){
+                                            IdleStateEvent idleStateEvent = (IdleStateEvent) evt;
+                                            if (idleStateEvent.state() == IdleState.WRITER_IDLE){
+                                                ctx.channel().writeAndFlush("heartbeat");
+                                            }
+                                        }
+                                        super.userEventTriggered(ctx, evt);
+                                    }
+                                })
                                 .addLast(new ChannelInboundHandlerAdapter() {
                                     @Override
                                     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
                                         log.error("error remote:{},{},{}", ctx.channel().remoteAddress(), cause.getClass(), cause.getMessage());
+                                    }
+
+                                    @Override
+                                    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                                        log.info("channel inactive");
                                     }
                                 })
                                 .addLast(new StringDecoder())

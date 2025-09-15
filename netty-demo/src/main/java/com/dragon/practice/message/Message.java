@@ -1,13 +1,17 @@
 package com.dragon.practice.message;
 
+import lombok.Data;
+import lombok.ToString;
+
 import java.io.Serializable;
 
-
-public interface Message extends Serializable {
-    // 消息的内容
-    Object getData();
-    // 消息的类型
-    int getType();
+@Data
+@ToString(callSuper = true)
+public abstract class Message implements Serializable {
     // 请求序号
-    int getSequenceId();
+    private int sequenceId;
+    // 消息的类型
+    public abstract MessageType getType();
+
+
 }

@@ -1,6 +1,7 @@
 package com.dragon.practice.protocol;
 
 import com.dragon.practice.message.Message;
+import com.dragon.practice.message.MessageType;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandler;
@@ -24,8 +25,8 @@ public class MessageCodecSharable extends MessageToMessageCodec<ByteBuf, Message
 
     static final int MAGIC_NUMBER = 0x11224488;
     @Override
-    protected void encode(ChannelHandlerContext ctx, Message msg, List<Object> outList) throws Exception {
-        ByteBuf out = ByteBufAllocator.DEFAULT.buffer();
+    public void encode(ChannelHandlerContext ctx, Message msg, List<Object> outList) throws Exception {
+        ByteBuf out = ctx.alloc().buffer();
         // 1. 魔数 4B
         out.writeInt(MAGIC_NUMBER);
         // 2. 版本号 1B
@@ -33,7 +34,7 @@ public class MessageCodecSharable extends MessageToMessageCodec<ByteBuf, Message
         // 3. 序列化算法 1B 0表示JDK序列化，1表示JSON序列化
         out.writeByte(0);
         // 4. 指令类型 1B
-        out.writeByte(msg.getType());
+        out.writeByte(msg.getType().ordinal());
         // 5. 请求序号 4B
         out.writeInt(msg.getSequenceId());
         // 填充 1B凑够16B
@@ -58,7 +59,7 @@ public class MessageCodecSharable extends MessageToMessageCodec<ByteBuf, Message
         int magicNumber = in.readInt();
         int version = in.readByte();
         int serializer = in.readByte();
-        int command = in.readByte();
+        MessageType type = MessageType.values()[in.readByte()];
         int sequenceId = in.readInt();
         in.readByte();
         int length = in.readInt();
@@ -77,10 +78,10 @@ public class MessageCodecSharable extends MessageToMessageCodec<ByteBuf, Message
                 ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
                 Object data = objectInputStream.readObject();
                 Message message = ((Message) data);
-                log.info("{}, {}, {}, {}, {}, {}",
-                        magicNumber, version, serializer, command, sequenceId, length);
-                log.info("message:{}, type:{}, sequenceId:{}, data:{}",
-                        message, message.getType(), message.getSequenceId(), message.getData());
+                log.debug("{}, {}, {}, {}, {}, {}",
+                        magicNumber, version, serializer, type, sequenceId, length);
+                log.debug("message:{}, type:{}, sequenceId:{}",
+                        message, message.getType(), message.getSequenceId());
 
                 // 传出数据
                 out.add(message);
