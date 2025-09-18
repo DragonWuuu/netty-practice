@@ -17,7 +17,7 @@ import java.util.List;
 
 
 /*
- * 线程安全的，需要确保传入的ByteBuf是完整的消息。
+ * 该类是线程安全的，使用时需要确保传入的ByteBuf是完整的消息。
  */
 @Slf4j
 @ChannelHandler.Sharable

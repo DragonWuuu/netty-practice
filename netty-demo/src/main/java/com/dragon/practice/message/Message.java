@@ -12,6 +12,4 @@ public abstract class Message implements Serializable {
     private int sequenceId;
     // 消息的类型
     public abstract MessageType getType();
-
-
 }
