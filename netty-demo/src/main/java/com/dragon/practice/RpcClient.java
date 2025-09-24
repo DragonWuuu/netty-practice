@@ -46,7 +46,7 @@ public class RpcClient {
                                         log.error("服务器:{}，message:{}", ctx.channel().remoteAddress(), cause.getMessage());
                                     }
                                 })
-                                .addLast(loggingHandler)
+//                                .addLast(loggingHandler)
                                 .addLast(new LengthFrameDecoder())
                                 .addLast(messageCodecSharable)
                                 .addLast(rpcResponseHandler);

@@ -22,9 +22,9 @@ public class RpcRequestHandler extends SimpleChannelInboundHandler<RpcRequestMes
                     Method method = helloRpcService.getClass().getMethod(msg.getMethodName(), msg.getParameterTypes());
                     Object invoke = method.invoke(helloRpcService, msg.getArgs());
                     log.info("invoke: {}", invoke);
-                    ctx.channel().writeAndFlush(new RpcResponseMessage("调用成功", invoke));
+                    ctx.channel().writeAndFlush(new RpcResponseMessage(msg.getSequenceId(), "调用成功", invoke));
                 } catch (NoSuchMethodException e) {
-                    ctx.channel().writeAndFlush(new RpcResponseMessage("调用异常", new RuntimeException(e.getMessage())));
+                    ctx.channel().writeAndFlush(new RpcResponseMessage(msg.getSequenceId(), "调用异常", new RuntimeException(e.getMessage())));
                 }
                 break;
             }

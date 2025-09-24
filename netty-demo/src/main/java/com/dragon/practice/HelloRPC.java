@@ -15,7 +15,10 @@ import java.lang.reflect.Proxy;
 public class HelloRPC {
     public static void main(String[] args) {
         HelloRpcService helloRpcService = getProxyService(HelloRpcService.class);
-        helloRpcService.hello("zhangsan");
+        System.out.println(helloRpcService.hello("zhangsan"));
+        System.out.println(helloRpcService.hello("lisi"));
+        System.out.println(helloRpcService.hello("wangwu"));
+        System.out.println(helloRpcService.hello("zhaoliu"));
     }
 
     public static <T> T getProxyService(Class<T> serviceClass) {
